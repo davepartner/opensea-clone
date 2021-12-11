@@ -8,12 +8,26 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^4.4.0",
+    "axios": "^0.24.0",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.2",
+    "ipfs-http-client": "^54.0.2",
     "next": "12.0.7",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "react-router": "^6.1.1",
+    "web3modal": "^1.9.4"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.0",
     "eslint": "8.4.1",
-    "eslint-config-next": "12.0.7"
+    "eslint-config-next": "12.0.7",
+    "hardhat": "^2.7.1",
+    "postcss": "^8.4.4",
+    "tailwindcss": "^3.0.1"
   }
 }
