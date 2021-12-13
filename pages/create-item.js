@@ -1,7 +1,7 @@
 import {useState } from 'react'
 import {ethers } from 'ethers'
-import { create as ipfsHttpClient } from 'react'
-import { useRouter } from 'react/router'
+import { create as ipfsHttpClient } from 'ipfs-http-client'
+import { useRouter } from 'next/router'
 import Web3Modal from 'web3modal'
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0');
@@ -12,7 +12,7 @@ import {
 import NFT from '../artifacts/contracts/NFT.sol/NFT.json';
 import Market from '../artifacts/contracts/NFTMarket.sol/NFTMarket.json';
 import { EtherscanProvider } from '@ethersproject/providers'
-import Image from 'next/image'
+import Image from 'next/Image'
 
 
 export default function CreateItem() {
@@ -21,7 +21,7 @@ export default function CreateItem() {
     const router = useRouter();
 
     async function onChange(e) {
-        const file = e.target.file[0]
+        const file = e.target.files[0]
         try{ //try uploading the file
             const added = await client.add(
                 file,
@@ -33,7 +33,7 @@ export default function CreateItem() {
             const url = `https://ipfs.infura.io/ipfs/${added.path}`
             setFileUrl(url)
         }catch(e){
-            console.log(e)
+            console.log('Error uploading file: ', e)
         }
     }
 
@@ -61,20 +61,22 @@ export default function CreateItem() {
     }
 
     //2. List item for sale
-    async function createSale(){
+    async function createSale(url){
         const web3Modal = new Web3Modal();
         const connection = await web3Modal.connect();
         const provider = new ethers.providers.Web3Provider(connection);
 
         //sign the transaction
         const signer = provider.getSigner();
-        let contract = ethers.Contract(nftmarketaddress, NFT.abi, signer);
+        let contract = new ethers.Contract(nftaddress, NFT.abi, signer);
         let transaction = await contract.createToken(url);
         let tx = await transaction.wait()
 
         //get the tokenId from the transaction that occured above
         //there events array that is returned, the first item from that event
         //is the event, third item is the token id.
+        console.log('Transaction: ',tx)
+        console.log('Transaction events: ',tx.events[0])
         let event = tx.events[0]
         let value = event.args[2]
         let tokenId = value.toNumber() //we need to convert it a number
@@ -82,13 +84,13 @@ export default function CreateItem() {
         //get a reference to the price entered in the form 
         const price = ethers.utils.parseUnits(formInput.price, 'ether')
 
-        contract = ethers.Contract(nftmarketaddress, Market.abi, signer);
+        contract = new ethers.Contract(nftmarketaddress, Market.abi, signer);
 
         //get the listing price
         let listingPrice = await contract.getListingPrice()
         listingPrice = listingPrice.toString()
 
-        transaction = await contract.createMarketItem()(
+        transaction = await contract.createMarketItem(
             nftaddress, tokenId, price, {value: listingPrice }
         )
 
@@ -114,6 +116,7 @@ export default function CreateItem() {
                 <input 
                     placeholder="Asset Price in Eth"
                     className="mt-8 border rounded p-4"
+                    type="number"
                     onChange={e => updateFormInput({...formInput, price: e.target.value})}
                     />
                     <input
@@ -130,8 +133,7 @@ export default function CreateItem() {
                             alt="Picture of the author"
                             className="rounded mt-4"
                             width={350}
-                            
-                            // height={500} automatically provided
+                            height={500} 
                             // blurDataURL="data:..." automatically provided
                             // placeholder="blur" // Optional blur-up while loading
                           />
